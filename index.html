@@ -1,0 +1,462 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#101522">
+    <title>Pussore Playstation · Book a session</title>
+    <style>
+      :root {
+        color-scheme: dark;
+        font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        background: #101522;
+        color: #f5f7fb;
+        font-synthesis: none;
+        text-rendering: optimizeLegibility;
+        --muted: #9da8bb;
+        --panel: #192131;
+        --line: #2b374b;
+        --accent: #9af06c;
+      }
+
+      * { box-sizing: border-box; }
+      body { margin: 0; min-width: 320px; min-height: 100vh; }
+      button, input { font: inherit; }
+      button { cursor: pointer; }
+      .page { width: min(1080px, calc(100% - 32px)); margin: 0 auto; padding: 48px 0 64px; }
+      header { display: flex; align-items: flex-start; justify-content: space-between; gap: 20px; margin-bottom: 32px; }
+      .eyebrow { color: var(--accent); font-size: .78rem; font-weight: 800; letter-spacing: .16em; text-transform: uppercase; }
+      h1 { margin: 8px 0; font-size: clamp(2rem, 5vw, 3.25rem); letter-spacing: -.05em; }
+      .intro, .hint { color: var(--muted); line-height: 1.6; }
+      .intro { margin: 0; }
+      .button { border: 0; border-radius: 10px; padding: 11px 16px; font-weight: 750; color: #111820; background: var(--accent); }
+      .button:hover { filter: brightness(1.07); }
+      .button:disabled { cursor: wait; opacity: .6; }
+      .button.secondary { color: #e7edf7; background: #29364a; }
+      .button.danger { color: white; background: #a93642; }
+      .admin-toggle { flex: 0 0 auto; }
+      .notice { margin: 0 0 20px; padding: 13px 15px; border: 1px solid var(--line); border-radius: 12px; color: var(--muted); background: #151d2b; }
+      .notice.error { border-color: #9e3f49; color: #ffd5d8; }
+      .notice.success { border-color: #3a7345; color: #d7ffd3; }
+      .section-heading { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; margin: 30px 0 14px; }
+      h2 { margin: 0; font-size: 1.3rem; }
+      .hint { margin: 0; font-size: .9rem; }
+      .slot-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(225px, 1fr)); gap: 14px; }
+      .slot { display: flex; min-height: 182px; flex-direction: column; padding: 18px; border: 1px solid var(--line); border-radius: 16px; background: var(--panel); }
+      .slot.available { border-top: 4px solid #45c879; }
+      .slot.booked { border-top: 4px solid #ed5962; }
+      .slot-top { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+      .status { padding: 5px 9px; border-radius: 999px; font-size: .75rem; font-weight: 800; }
+      .available .status { color: #b6ffd0; background: #1d5638; }
+      .booked .status { color: #ffd5d8; background: #642b35; }
+      .slot-time { margin: 18px 0 3px; font-size: 1.2rem; font-weight: 800; }
+      .slot-date, .slot-price { color: var(--muted); font-size: .92rem; }
+      .slot-price strong { color: #f5f7fb; }
+      .slot-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: auto; padding-top: 16px; }
+      .slot-actions .button { padding: 8px 11px; font-size: .85rem; }
+      .empty { grid-column: 1 / -1; padding: 32px; border: 1px dashed var(--line); border-radius: 14px; color: var(--muted); text-align: center; }
+      .admin-panel { margin-top: 28px; padding: 20px; border: 1px solid var(--line); border-radius: 16px; background: #151d2b; }
+      .admin-panel h2 { margin-bottom: 14px; }
+      .admin-form, .login-form { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)) auto; align-items: end; gap: 12px; }
+      .login-form { grid-template-columns: repeat(2, minmax(0, 1fr)) auto; }
+      label { display: grid; gap: 7px; color: var(--muted); font-size: .85rem; font-weight: 650; }
+      input { width: 100%; padding: 11px 12px; border: 1px solid var(--line); border-radius: 9px; outline: none; color: #f5f7fb; background: #101522; }
+      input:focus { border-color: var(--accent); }
+      .admin-header { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 18px; }
+      .admin-header h2 { margin: 0; }
+      .booking-info { margin: 12px 0 0; padding-top: 12px; border-top: 1px solid var(--line); color: #ffd5d8; font-size: .9rem; line-height: 1.5; }
+      dialog { width: min(440px, calc(100% - 28px)); padding: 0; border: 1px solid var(--line); border-radius: 18px; color: #f5f7fb; background: #192131; box-shadow: 0 24px 80px #0009; }
+      dialog::backdrop { background: #050812c9; }
+      .dialog-body { padding: 22px; }
+      .dialog-body h2 { margin-bottom: 7px; }
+      .dialog-body form { display: grid; gap: 15px; margin-top: 20px; }
+      .price-summary { padding: 13px; border-radius: 10px; color: #d7ffd3; background: #1a3b2b; line-height: 1.5; }
+      .dialog-actions { display: flex; justify-content: flex-end; gap: 9px; }
+      .small { font-size: .84rem; }
+      [hidden] { display: none !important; }
+      @media (max-width: 700px) {
+        .page { padding-top: 30px; }
+        header { align-items: flex-start; }
+        .admin-form, .login-form { grid-template-columns: 1fr; }
+        .admin-toggle { padding: 9px 11px; }
+      }
+      @media (max-width: 420px) {
+        .page { width: min(100% - 22px, 1080px); }
+        header { gap: 10px; }
+        .admin-toggle { font-size: .82rem; }
+        .section-heading { align-items: flex-start; flex-direction: column; }
+      }
+    </style>
+  </head>
+  <body>
+    <main class="page">
+      <header>
+        <div>
+          <div class="eyebrow">Pussore Playstation</div>
+          <h1>Book your game time</h1>
+          <p class="intro">Pick an available slot and bring your crew. Price is shown per person.</p>
+        </div>
+        <button class="button secondary admin-toggle" id="admin-toggle" type="button">Admin login</button>
+      </header>
+
+      <div id="message" class="notice" role="status" hidden></div>
+
+      <section aria-labelledby="slots-title">
+        <div class="section-heading">
+          <h2 id="slots-title">Available sessions</h2>
+          <p class="hint">Green is available · red is booked</p>
+        </div>
+        <div id="slot-grid" class="slot-grid" aria-live="polite">
+          <div class="empty">Connecting to live slots…</div>
+        </div>
+      </section>
+
+      <section id="admin-panel" class="admin-panel" hidden aria-label="Admin controls">
+        <div id="login-view">
+          <h2>Admin login</h2>
+          <p class="hint">Sign in with the administrator account.</p>
+          <form id="login-form" class="login-form">
+            <label>Email
+              <input name="email" type="email" autocomplete="username" required>
+            </label>
+            <label>Password
+              <input name="password" type="password" autocomplete="current-password" required>
+            </label>
+            <button class="button" type="submit">Sign in</button>
+          </form>
+        </div>
+
+        <div id="admin-view" hidden>
+          <div class="admin-header">
+            <div>
+              <h2>Manage sessions</h2>
+              <p class="hint">Signed in as <span id="admin-email"></span></p>
+            </div>
+            <button class="button secondary" id="sign-out" type="button">Sign out</button>
+          </div>
+          <form id="slot-form" class="admin-form">
+            <label>Session date and time
+              <input name="start_at" type="datetime-local" required>
+            </label>
+            <label>Price per person
+              <input name="price_per_person" type="number" min="0" step="0.01" placeholder="e.g. 200" required>
+            </label>
+            <button class="button" id="save-slot" type="submit">Add slot</button>
+          </form>
+          <p class="hint small" id="edit-hint" hidden>Editing a slot. Save your changes or cancel the edit.</p>
+          <button class="button secondary small" id="cancel-edit" type="button" hidden>Cancel edit</button>
+        </div>
+      </section>
+    </main>
+
+    <dialog id="booking-dialog">
+      <div class="dialog-body">
+        <h2>Book this session</h2>
+        <p class="hint" id="booking-time"></p>
+        <form id="booking-form">
+          <label>Your name
+            <input name="name" type="text" maxlength="120" autocomplete="name" required>
+          </label>
+          <label>How many people?
+            <input name="people" type="number" min="1" step="1" value="1" required>
+          </label>
+          <div class="price-summary" id="price-summary"></div>
+          <div class="dialog-actions">
+            <button class="button secondary" id="close-booking" type="button">Cancel</button>
+            <button class="button" id="confirm-booking" type="submit">Confirm booking</button>
+          </div>
+        </form>
+      </div>
+    </dialog>
+
+    <script type="module">
+      import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+
+      const SUPABASE_URL = "https://llsplquepjuupscqqkxw.supabase.co";
+      const SUPABASE_ANON_KEY = "sb_publishable_snBZdlJYNLSuGmkfDmS-qQ_FrQHtUgr";
+      const ADMIN_EMAIL = "dg3667610@gmail.com";
+      const configured = !SUPABASE_URL.startsWith("YOUR_") && !SUPABASE_ANON_KEY.startsWith("YOUR_");
+      const message = document.querySelector("#message");
+      const grid = document.querySelector("#slot-grid");
+      const adminPanel = document.querySelector("#admin-panel");
+      const loginView = document.querySelector("#login-view");
+      const adminView = document.querySelector("#admin-view");
+      const bookingDialog = document.querySelector("#booking-dialog");
+      const supabase = configured ? createClient(SUPABASE_URL, SUPABASE_ANON_KEY) : null;
+      let slots = [];
+      let bookings = new Map();
+      let editingSlotId = null;
+      let selectedSlot = null;
+
+      function showMessage(text, kind = "") {
+        message.textContent = text;
+        message.className = `notice ${kind}`;
+        message.hidden = false;
+      }
+
+      function clearMessage() {
+        message.hidden = true;
+        message.textContent = "";
+      }
+
+      function escapeHtml(value) {
+        return String(value).replace(/[&<>"']/g, (char) => ({
+          "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"
+        })[char]);
+      }
+
+      function formatDate(value) {
+        return new Intl.DateTimeFormat(undefined, { weekday: "short", month: "short", day: "numeric", year: "numeric" }).format(new Date(value));
+      }
+
+      function formatTime(value) {
+        return new Intl.DateTimeFormat(undefined, { hour: "numeric", minute: "2-digit" }).format(new Date(value));
+      }
+
+      function formatPrice(value) {
+        return new Intl.NumberFormat(undefined, { style: "currency", currency: "INR", maximumFractionDigits: 2 }).format(Number(value));
+      }
+
+      function isAdmin() {
+        return document.querySelector("#admin-view").hidden === false;
+      }
+
+      function renderSlots() {
+        if (!slots.length) {
+          grid.innerHTML = '<div class="empty">No sessions are listed yet. Please check back soon.</div>';
+          return;
+        }
+
+        grid.innerHTML = slots.map((slot) => {
+          const booked = slot.status === "booked";
+          const booking = bookings.get(slot.id);
+          const actions = [];
+          if (!booked) {
+            actions.push(`<button class="button book-slot" data-id="${escapeHtml(slot.id)}" type="button">Book this slot</button>`);
+          }
+          if (isAdmin()) {
+            actions.push(`<button class="button secondary edit-slot" data-id="${escapeHtml(slot.id)}" type="button">Edit</button>`);
+            if (booked) {
+              actions.push(`<button class="button danger cancel-booking" data-id="${escapeHtml(slot.id)}" type="button">Cancel booking</button>`);
+            } else {
+              actions.push(`<button class="button danger delete-slot" data-id="${escapeHtml(slot.id)}" type="button">Delete</button>`);
+            }
+          }
+          const bookingInfo = isAdmin() && booking
+            ? `<p class="booking-info">Booked by ${escapeHtml(booking.customer_name)} · ${Number(booking.people)} ${Number(booking.people) === 1 ? "person" : "people"} · ${formatPrice(Number(slot.price_per_person) * Number(booking.people))} total</p>`
+            : "";
+          return `<article class="slot ${booked ? "booked" : "available"}">
+            <div class="slot-top"><span class="status">${booked ? "Booked" : "Available"}</span></div>
+            <div class="slot-time">${escapeHtml(formatTime(slot.start_at))}</div>
+            <div class="slot-date">${escapeHtml(formatDate(slot.start_at))}</div>
+            <p class="slot-price"><strong>${escapeHtml(formatPrice(slot.price_per_person))}</strong> per person</p>
+            <div class="slot-actions">${actions.join("")}</div>${bookingInfo}
+          </article>`;
+        }).join("");
+      }
+
+      async function loadSlots() {
+        if (!supabase) return;
+        const { data, error } = await supabase.from("slots").select("id, start_at, price_per_person, status").order("start_at");
+        if (error) throw error;
+        slots = data ?? [];
+        await loadBookings();
+        renderSlots();
+      }
+
+      async function loadBookings() {
+        bookings = new Map();
+        if (!isAdmin()) return;
+        const { data, error } = await supabase.from("bookings").select("id, slot_id, customer_name, people");
+        if (error) throw error;
+        bookings = new Map((data ?? []).map((booking) => [booking.slot_id, booking]));
+      }
+
+      async function refresh() {
+        try {
+          await loadSlots();
+        } catch (error) {
+          showMessage(`Could not load sessions: ${error.message}`, "error");
+        }
+      }
+
+      function updateAdminView(session) {
+        const allowed = session?.user?.email?.toLowerCase() === ADMIN_EMAIL;
+        loginView.hidden = allowed;
+        adminView.hidden = !allowed;
+        document.querySelector("#admin-toggle").textContent = allowed ? "Admin panel" : "Admin login";
+        document.querySelector("#admin-email").textContent = allowed ? session.user.email : "";
+        renderSlots();
+      }
+
+      function updatePriceSummary() {
+        if (!selectedSlot) return;
+        const people = Math.max(1, Number(document.querySelector('#booking-form [name="people"]').value) || 1);
+        const price = Number(selectedSlot.price_per_person);
+        document.querySelector("#price-summary").innerHTML =
+          `${escapeHtml(formatPrice(price))} per person × ${people}<br><strong>Total: ${escapeHtml(formatPrice(price * people))}</strong>`;
+      }
+
+      function resetSlotForm() {
+        editingSlotId = null;
+        document.querySelector("#slot-form").reset();
+        document.querySelector("#save-slot").textContent = "Add slot";
+        document.querySelector("#edit-hint").hidden = true;
+        document.querySelector("#cancel-edit").hidden = true;
+      }
+
+      if (!configured) {
+        document.querySelector("#admin-toggle").disabled = true;
+        showMessage("Connect your Supabase project first: add the project URL and anon key in index.html, then run supabase-setup.sql.", "error");
+        grid.innerHTML = '<div class="empty">Supabase is not configured yet.</div>';
+      } else {
+        const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
+        if (sessionError) showMessage(`Could not restore the admin session: ${sessionError.message}`, "error");
+        const session = sessionData?.session ?? null;
+        updateAdminView(session);
+        await refresh();
+        supabase.channel("public-slots")
+          .on("postgres_changes", { event: "*", schema: "public", table: "slots" }, refresh)
+          .subscribe();
+        supabase.auth.onAuthStateChange((_event, nextSession) => {
+          updateAdminView(nextSession);
+          refresh();
+        });
+      }
+
+      document.querySelector("#admin-toggle").addEventListener("click", () => {
+        adminPanel.hidden = !adminPanel.hidden;
+        if (!adminPanel.hidden) adminPanel.scrollIntoView({ behavior: "smooth", block: "nearest" });
+      });
+
+      document.querySelector("#login-form").addEventListener("submit", async (event) => {
+        event.preventDefault();
+        clearMessage();
+        const form = new FormData(event.currentTarget);
+        const { data, error } = await supabase.auth.signInWithPassword({
+          email: form.get("email"),
+          password: form.get("password")
+        });
+        if (error) {
+          showMessage(`Sign-in failed: ${error.message}`, "error");
+        } else if (data.user?.email?.toLowerCase() !== ADMIN_EMAIL) {
+          await supabase.auth.signOut();
+          showMessage(`Only ${ADMIN_EMAIL} can manage sessions.`, "error");
+        } else {
+          adminPanel.hidden = false;
+          showMessage("Signed in. You can now add and manage sessions.", "success");
+          await refresh();
+        }
+      });
+
+      document.querySelector("#sign-out").addEventListener("click", async () => {
+        const { error } = await supabase.auth.signOut();
+        if (error) showMessage(`Sign-out failed: ${error.message}`, "error");
+        else {
+          updateAdminView(null);
+          await refresh();
+        }
+      });
+
+      document.querySelector("#slot-form").addEventListener("submit", async (event) => {
+        event.preventDefault();
+        clearMessage();
+        const form = new FormData(event.currentTarget);
+        const startAt = new Date(form.get("start_at"));
+        const price = Number(form.get("price_per_person"));
+        if (!Number.isFinite(startAt.getTime()) || !Number.isFinite(price) || price < 0) {
+          showMessage("Enter a valid session date, time, and non-negative price.", "error");
+          return;
+        }
+        const values = { start_at: startAt.toISOString(), price_per_person: price };
+        const slotId = editingSlotId;
+        const query = slotId
+          ? supabase.from("slots").update(values).eq("id", slotId)
+          : supabase.from("slots").insert(values);
+        const { error } = await query;
+        if (error) {
+          showMessage(`Could not save the session: ${error.message}`, "error");
+          return;
+        }
+        resetSlotForm();
+        showMessage(slotId ? "Session updated." : "Session added.", "success");
+        await refresh();
+      });
+
+      document.querySelector("#cancel-edit").addEventListener("click", resetSlotForm);
+
+      document.querySelector("#booking-form [name='people']").addEventListener("input", updatePriceSummary);
+      document.querySelector("#close-booking").addEventListener("click", () => bookingDialog.close());
+
+      document.querySelector("#booking-form").addEventListener("submit", async (event) => {
+        event.preventDefault();
+        if (!selectedSlot) return;
+        const button = document.querySelector("#confirm-booking");
+        button.disabled = true;
+        clearMessage();
+        const bookingForm = event.currentTarget;
+        const form = new FormData(bookingForm);
+        const { error } = await supabase.rpc("book_slot", {
+          p_slot_id: selectedSlot.id,
+          p_customer_name: String(form.get("name")).trim(),
+          p_people: Number(form.get("people"))
+        });
+        button.disabled = false;
+        if (error) {
+          bookingDialog.close();
+          showMessage(error.message.includes("no longer available")
+            ? "Sorry, that session was just booked. Please choose another one."
+            : `Could not complete the booking: ${error.message}`, "error");
+          await refresh();
+          return;
+        }
+        bookingDialog.close();
+        bookingForm.reset();
+        selectedSlot = null;
+        showMessage("Your session is booked. See you soon!", "success");
+        await refresh();
+      });
+
+      grid.addEventListener("click", async (event) => {
+        const button = event.target.closest("button[data-id]");
+        if (!button) return;
+        const slot = slots.find((item) => item.id === button.dataset.id);
+        if (!slot) return;
+
+        if (button.classList.contains("book-slot")) {
+          selectedSlot = slot;
+          document.querySelector("#booking-time").textContent = `${formatDate(slot.start_at)} at ${formatTime(slot.start_at)}`;
+          document.querySelector("#booking-form").reset();
+          updatePriceSummary();
+          bookingDialog.showModal();
+        } else if (button.classList.contains("edit-slot")) {
+          editingSlotId = slot.id;
+          const localDate = new Date(new Date(slot.start_at).getTime() - new Date(slot.start_at).getTimezoneOffset() * 60000)
+            .toISOString().slice(0, 16);
+          document.querySelector('#slot-form [name="start_at"]').value = localDate;
+          document.querySelector('#slot-form [name="price_per_person"]').value = slot.price_per_person;
+          document.querySelector("#save-slot").textContent = "Save changes";
+          document.querySelector("#edit-hint").hidden = false;
+          document.querySelector("#cancel-edit").hidden = false;
+          document.querySelector("#slot-form").scrollIntoView({ behavior: "smooth", block: "center" });
+        } else if (button.classList.contains("delete-slot")) {
+          if (!confirm("Delete this available session?")) return;
+          const { error } = await supabase.from("slots").delete().eq("id", slot.id);
+          if (error) showMessage(`Could not delete the session: ${error.message}`, "error");
+          else {
+            showMessage("Session deleted.", "success");
+            await refresh();
+          }
+        } else if (button.classList.contains("cancel-booking")) {
+          if (!confirm("Cancel this booking and make the session available again?")) return;
+          const { error } = await supabase.rpc("cancel_booking", { p_slot_id: slot.id });
+          if (error) showMessage(`Could not cancel the booking: ${error.message}`, "error");
+          else {
+            showMessage("Booking cancelled. The session is available again.", "success");
+            await refresh();
+          }
+        }
+      });
+    </script>
+  </body>
+</html>
