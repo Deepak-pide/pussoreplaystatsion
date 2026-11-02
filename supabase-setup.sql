@@ -12,9 +12,12 @@ create table if not exists public.bookings (
   id uuid primary key default gen_random_uuid(),
   slot_id uuid not null unique references public.slots(id) on delete restrict,
   customer_name text not null check (char_length(trim(customer_name)) between 1 and 120),
+  phone_number text,
   people integer not null check (people > 0),
   created_at timestamptz not null default now()
 );
+
+alter table public.bookings add column if not exists phone_number text;
 
 alter table public.slots enable row level security;
 alter table public.bookings enable row level security;
@@ -42,9 +45,12 @@ create policy "Admin can view bookings"
   to authenticated
   using (lower(coalesce(auth.jwt() ->> 'email', '')) = 'dg3667610@gmail.com');
 
+drop function if exists public.book_slot(uuid, text, integer);
+
 create or replace function public.book_slot(
   p_slot_id uuid,
   p_customer_name text,
+  p_customer_phone text,
   p_people integer
 )
 returns uuid
@@ -58,6 +64,11 @@ begin
   if char_length(trim(coalesce(p_customer_name, ''))) not between 1 and 120 then
     raise exception 'Enter a name between 1 and 120 characters.';
   end if;
+  if char_length(trim(coalesce(p_customer_phone, ''))) not between 7 and 24
+    or trim(p_customer_phone) !~ '^[0-9+(). -]+$'
+    or char_length(regexp_replace(p_customer_phone, '[^0-9]', '', 'g')) not between 7 and 15 then
+    raise exception 'Enter a valid phone number.';
+  end if;
   if p_people is null or p_people < 1 then
     raise exception 'Number of people must be at least one.';
   end if;
@@ -70,8 +81,8 @@ begin
     raise exception 'This session is no longer available.';
   end if;
 
-  insert into public.bookings (slot_id, customer_name, people)
-  values (p_slot_id, trim(p_customer_name), p_people)
+  insert into public.bookings (slot_id, customer_name, phone_number, people)
+  values (p_slot_id, trim(p_customer_name), trim(p_customer_phone), p_people)
   returning id into v_booking_id;
 
   return v_booking_id;
@@ -98,8 +109,8 @@ begin
 end;
 $$;
 
-revoke all on function public.book_slot(uuid, text, integer) from public;
-grant execute on function public.book_slot(uuid, text, integer) to anon, authenticated;
+revoke all on function public.book_slot(uuid, text, text, integer) from public;
+grant execute on function public.book_slot(uuid, text, text, integer) to anon, authenticated;
 revoke all on function public.cancel_booking(uuid) from public;
 grant execute on function public.cancel_booking(uuid) to authenticated;
 

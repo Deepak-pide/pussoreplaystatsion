@@ -12,9 +12,11 @@ A mobile-friendly public booking page with live slot availability and a Supabase
 
 ## Using the page
 
-- Anyone can see live session availability, open an available session, enter a name and party size, and confirm the displayed total.
-- The administrator signs in with the account above to add, edit, or delete sessions, see booking details, or cancel a booking.
+- Anyone can see live session availability, open an available session, enter a name, phone number, and party size, and confirm the displayed total.
+- The administrator signs in with the account above to add, edit, or delete sessions, see each booking's name and phone number, or cancel a booking.
 - A confirmed booking changes the session to red/booked for everyone. Cancelling it makes the session green/available again.
 - Session time is stored as an absolute timestamp; the browser displays it in each visitor's local time zone.
 
 The database uses row-level security so the public can read session status but cannot read customer details or directly change sessions. Booking is performed by a database function that locks the session while it is being booked, preventing two visitors from claiming the same session simultaneously.
+
+If you already ran the setup script, run the updated [`supabase-setup.sql`](./supabase-setup.sql) again to add phone-number support to the existing database.
